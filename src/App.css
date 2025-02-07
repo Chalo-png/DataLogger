@@ -1,0 +1,43 @@
+/* src/App.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Mejoras para el gráfico */
+.chart-tooltip {
+  background: white !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+}
+
+.chart-tooltip .title {
+  font-weight: 600 !important;
+  color: #1a202c !important;
+}
+
+.leaflet-container {
+  background: #fff !important;
+  border-radius: 12px;
+}
+
+.leaflet-popup-custom {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.leaflet-popup-custom .leaflet-popup-content {
+  margin: 12px;
+  line-height: 1.4;
+}
+
+.leaflet-marker-icon {
+  filter: hue-rotate(160deg); /* Makes default blue markers more visible */
+}
+
+.custom-container {
+  padding-left: 5%;
+  padding-right: 5%;
+}

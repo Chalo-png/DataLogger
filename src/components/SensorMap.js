@@ -101,10 +101,10 @@ const ToggleMarkersButton = ({ showMarkers, toggleMarkers, selectedPoint }) => {
   );
 };
 
-const SensorMap = ({ selectedDate, setSelectedDate, selectedMarker, setSelectedMarker }) => {
+const SensorMap = ({ selectedDate, setSelectedDate, selectedMarker, setSelectedMarker, selectedPoint, setSelectedPoint, setSelectedPointIndex }) => {
   const [sensorData, setSensorData] = useState([]);
   const [showMarkers, setShowMarkers] = useState(true);
-  const [selectedPoint, setSelectedPoint] = useState(null);
+  
   const [showModal, setShowModal] = useState(false);
 
   const formatTime = (time) => {
@@ -133,9 +133,26 @@ const SensorMap = ({ selectedDate, setSelectedDate, selectedMarker, setSelectedM
     return () => unsubscribe();
   }, [selectedDate]);
 
-  const handleMarkerClick = (point) => {
+  const handleMarkerClick = (point, index) => {
     setSelectedPoint(point);
-    setShowMarkers(false);  // Oculta todos los demás puntos
+    setSelectedPointIndex(index);  // Actualizar el índice del punto seleccionado en el gráfico
+    setShowMarkers(false);
+  };
+  const handleArrowClick = (direction) => {
+    if (!sensorData.length) return;
+
+    let newIndex = selectedPoint
+      ? sensorData.findIndex((point) => point.hora === selectedPoint.hora)
+      : 0;
+
+    if (direction === 'next') {
+      newIndex = (newIndex + 1) % sensorData.length;
+    } else if (direction === 'prev') {
+      newIndex = (newIndex - 1 + sensorData.length) % sensorData.length;
+    }
+
+    const newPoint = sensorData[newIndex];
+    handleMarkerClick(newPoint, newIndex);
   };
 
   const toggleMarkers = () => {
@@ -211,9 +228,10 @@ const SensorMap = ({ selectedDate, setSelectedDate, selectedMarker, setSelectedM
             key={index}
             position={[point.latitud, point.longitud]}
             eventHandlers={{
-              click: () => handleMarkerClick(point),  // Maneja el clic en el marcador
+              click: () => handleMarkerClick(point, index),
             }}
           >
+
             <Popup className="leaflet-popup-custom">
               <div className="space-y-1">
                 <p className="font-semibold">Hora: {point.hora}</p>
@@ -223,6 +241,50 @@ const SensorMap = ({ selectedDate, setSelectedDate, selectedMarker, setSelectedM
             </Popup>
           </Marker>
         ))}
+
+<button
+          onClick={() => handleArrowClick('prev')}
+          style={{
+            position: 'absolute',
+            left: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1000,
+            backgroundColor: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            padding: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#333',
+          }}
+        >
+          &lt;
+        </button>
+
+        <button
+          onClick={() => handleArrowClick('next')}
+          style={{
+            position: 'absolute',
+            right: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1000,
+            backgroundColor: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            padding: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#333',
+          }}
+        >
+          &gt;
+        </button>
   
         <Polyline positions={polylines} color="blue" />
   

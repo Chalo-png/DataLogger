@@ -3,7 +3,14 @@
   import { collection, onSnapshot } from "firebase/firestore";
   import Chart from "chart.js/auto";
 
-  const GraficoFirestore = ({ selectedDate, onPointClick }) => {
+  const GraficoFirestore = ({
+    selectedDate,
+    setSelectedMarker,
+    setSelectedPoint,
+    selectedMarker,
+    selectedPointIndex,
+    setSelectedPointIndex,
+  }) => {
 
     const [chartData, setChartData] = useState({
       labels: [],
@@ -14,6 +21,7 @@
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
     const prevDataRef = useRef(chartData);
+    
 
     useEffect(() => {
       const year = selectedDate.getFullYear();
@@ -93,6 +101,15 @@
               borderColor: "rgba(239, 68, 68, 1)", // rojo tailwind-500
               backgroundColor: "rgba(239, 68, 68, 0.2)",
               tension: 0.4,
+              pointBackgroundColor: chartData.temperaturaData.map((_, index) =>
+                index === selectedPointIndex ? "rgba(168, 85, 247, 0.2)" : "rgba(239, 68, 68, 0.2)"
+              ),
+              pointBorderColor: chartData.temperaturaData.map((_, index) =>
+                index === selectedPointIndex ? "rgba(168, 85, 247, 1)" : "rgba(239, 68, 68, 1)"
+              ),
+              pointBorderWidth: chartData.temperaturaData.map((_, index) =>
+                index === selectedPointIndex ? 4 : 1
+              ),
             },
             {
               label: "Humedad (%)",
@@ -100,30 +117,37 @@
               borderColor: "rgba(59, 130, 246, 1)", // azul tailwind-500
               backgroundColor: "rgba(59, 130, 246, 0.2)",
               tension: 0.4,
+              pointBackgroundColor: chartData.humedadData.map((_, index) =>
+                index === selectedPointIndex ? "rgba(168, 85, 247, 0.2)" : "rgba(59, 130, 246, 0.2)"
+              ),
+              pointBorderColor: chartData.humedadData.map((_, index) =>
+                index === selectedPointIndex ? "rgba(168, 85, 247, 1)" : "rgba(59, 130, 246, 1)"
+              ),
+              pointBorderWidth: chartData.humedadData.map((_, index) =>
+                index === selectedPointIndex ? 4 : 1
+              ),
             },
           ],
+      
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           onClick: (_, elements) => {
-            if (elements.length > 0 && onPointClick) {
+            if (elements.length > 0 && setSelectedMarker) {
               const index = elements[0].index;
               const time = chartData.labels[index];       
-              const selectedPoint = {
+              setSelectedPointIndex(index);
+              const chosen = {
                 hora: time,
                 temperatura: chartData.temperaturaData[index],
                 humedad: chartData.humedadData[index],
               };
-          
-              onPointClick(selectedPoint);  // Aquí se llama correctamente la función
+              setSelectedPoint(null);  // Aquí se llama incorrectamente la función
+              setSelectedMarker(chosen);  // Aquí se llama correctamente la función
             }
           },
-          
-
-
           plugins: {
-            
             tooltip: {
               backgroundColor: "white",
               bodyColor: "#1a202c",
@@ -181,12 +205,12 @@
             },
             point: {
               radius: 3,
-              hoverRadius: 6,
+              hoverRadius: 10,
             },
           },
         },
       });
-    }, [chartData]);
+    }, [chartData, selectedPointIndex]);
 
     return (
       <div className="bg-white rounded-xl shadow-2xl p-8 transition-all duration-300 hover:shadow-xl mx-auto max-w-7xl w-full">

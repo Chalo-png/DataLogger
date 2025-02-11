@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/DataLogger/static/css/main.9278e480.css",
+    "main.js": "/DataLogger/static/js/main.05e63388.js",
+    "static/js/488.2124a407.chunk.js": "/DataLogger/static/js/488.2124a407.chunk.js",
+    "index.html": "/DataLogger/index.html",
+    "main.9278e480.css.map": "/DataLogger/static/css/main.9278e480.css.map",
+    "main.05e63388.js.map": "/DataLogger/static/js/main.05e63388.js.map",
+    "488.2124a407.chunk.js.map": "/DataLogger/static/js/488.2124a407.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9278e480.css",
+    "static/js/main.05e63388.js"
+  ]
+}

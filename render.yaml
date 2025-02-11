@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: React App
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: build

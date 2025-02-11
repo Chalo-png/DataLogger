@@ -2,16 +2,18 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore"; // Importa Firestore si lo necesitas
 
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCMuJDIo2TTgXmXDYpzm7y2sTp3KKnqPDQ",
-  authDomain: "fir-dl-af534.firebaseapp.com",
-  databaseURL: "https://fir-dl-af534-default-rtdb.firebaseio.com",
-  projectId: "fir-dl-af534",
-  storageBucket: "fir-dl-af534.firebasestorage.app",
-  messagingSenderId: "934466712676",
-  appId: "1:934466712676:web:561b71e3c631475e06db71"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

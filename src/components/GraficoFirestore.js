@@ -210,7 +210,7 @@
           },
         },
       });
-    }, [chartData, selectedPointIndex]);
+    }, [chartData, selectedPointIndex, setSelectedMarker, setSelectedPoint, setSelectedPointIndex]);
 
     return (
       <div className="bg-white rounded-xl shadow-2xl p-8 transition-all duration-300 hover:shadow-xl mx-auto max-w-7xl w-full">

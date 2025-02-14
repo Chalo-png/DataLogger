@@ -5,7 +5,7 @@ import './App.css';
 import { Container } from 'react-bootstrap';
 
 function App() {
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 1, 7)); // 2025-02-07
+  const [selectedDate, setSelectedDate] = useState(new Date()); // 2025-02-07
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [selectedPointIndex, setSelectedPointIndex] = useState(null);

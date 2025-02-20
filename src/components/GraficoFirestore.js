@@ -96,7 +96,7 @@
           labels: chartData.labels,
           datasets: [
             {
-              label: "T°",
+              label: "Temperatura (°C)",
               data: chartData.temperaturaData,
               borderColor: "rgba(239, 68, 68, 1)", // rojo tailwind-500
               backgroundColor: "rgba(239, 68, 68, 0.2)",

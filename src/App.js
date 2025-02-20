@@ -1,8 +1,9 @@
+// App.js
 import React, { useState, useCallback, useMemo } from 'react';
-import { Container, Navbar, Button } from 'react-bootstrap';
-import { GearFill } from 'react-bootstrap-icons';
+import { Container, Navbar } from 'react-bootstrap';
 import GraficoFirestore from './components/GraficoFirestore';
 import SensorMap from './components/SensorMap';
+import Tuerca from './components/tuerca';  // Importamos el nuevo componente
 import './App.css';
 
 function App() {
@@ -21,16 +22,12 @@ function App() {
 
   return (
     <Container className="custom-container" fluid>
-      <Navbar bg="dark" variant="dark" className="w-100 px-3 mb-3 d-flex justify-content-between align-items-center">
-  <h1 className="text-light m-0">Monitoreo de Sensores</h1>
-  <div className="ms-auto">
-    <Button variant="outline-light" onClick={() => alert('Abrir configuración')} aria-label="Abrir configuración">
-      <GearFill size={24} />
-    </Button>
-  </div>
-</Navbar>
+      <Navbar bg="dark" variant="dark" className="w-100 px-3 mb-3">
+        <h1 className="text-light m-0">Monitoreo de Sensores</h1>
+      </Navbar>
 
-
+      {/* Componente Tuerca */}
+      <Tuerca />
 
       <h2 className="text-center my-4">Bienvenido al Sistema de Monitoreo de Sensores</h2>
 

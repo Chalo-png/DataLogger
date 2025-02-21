@@ -1,9 +1,8 @@
-// App.js
 import React, { useState, useCallback, useMemo } from 'react';
 import { Container, Navbar } from 'react-bootstrap';
 import GraficoFirestore from './components/GraficoFirestore';
 import SensorMap from './components/SensorMap';
-import Tuerca from './components/tuerca';  // Importamos el nuevo componente
+import Tuerca from './components/tuerca';
 import './App.css';
 
 function App() {
@@ -23,13 +22,16 @@ function App() {
   return (
     <Container className="custom-container" fluid>
       <Navbar bg="dark" variant="dark" className="w-100 px-3 mb-3">
-        <h1 className="text-light m-0">Monitoreo de Sensores</h1>
+        <h1 className="text-light m-0">MF</h1>
       </Navbar>
 
       {/* Componente Tuerca */}
       <Tuerca />
 
+      {/* Se comenta la línea del título para eliminarlo */}
+      {/*
       <h2 className="text-center my-4">Bienvenido al Sistema de Monitoreo de Sensores</h2>
+      */}
 
       <div className="d-flex flex-column align-items-center">
         <div className="mb-2">

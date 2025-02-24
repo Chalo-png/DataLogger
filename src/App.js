@@ -1,8 +1,10 @@
+// src/App.js
 import React, { useState, useCallback, useMemo } from 'react';
 import { Container, Navbar } from 'react-bootstrap';
 import GraficoFirestore from './components/GraficoFirestore';
 import SensorMap from './components/SensorMap';
 import Tuerca from './components/tuerca';
+import Pantalla from './components/Pantalla';
 import './App.css';
 
 function App() {
@@ -27,11 +29,8 @@ function App() {
 
       {/* Componente Tuerca */}
       <Tuerca />
-
-      {/* Se comenta la línea del título para eliminarlo */}
-      {/*
-      <h2 className="text-center my-4">Bienvenido al Sistema de Monitoreo de Sensores</h2>
-      */}
+      {/* Colocamos Pantalla justo al lado de la tuerca */}
+      <Pantalla />
 
       <div className="d-flex flex-column align-items-center">
         <div className="mb-2">

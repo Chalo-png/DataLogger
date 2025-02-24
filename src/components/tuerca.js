@@ -13,14 +13,27 @@ const Tuerca = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Maneja el cambio en los inputs
+  // Maneja el cambio en los inputs y elimina ceros a la izquierda
   const handleConfigChange = (e) => {
     const { name, value } = e.target;
-    if (value < 0) return;
-    setConfigTimes(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (Number(value) < 0) return; // Evita valores negativos
+
+    // Convertimos el valor a número entero para remover ceros a la izquierda
+    const numericValue = parseInt(value, 10);
+
+    // Si es un número válido, lo guardamos como string sin ceros a la izquierda
+    if (!isNaN(numericValue)) {
+      setConfigTimes(prev => ({
+        ...prev,
+        [name]: numericValue.toString()
+      }));
+    } else {
+      // Si el usuario borra todo y queda vacío, lo dejamos vacío
+      setConfigTimes(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   // Cierra el modal al hacer clic fuera de él
@@ -103,7 +116,8 @@ const Tuerca = () => {
               />
             </div>
 
-            <form onSubmit={handleConfigSubmit}>
+            {/* noValidate para deshabilitar validación nativa y permitir números no múltiplos de 10 */}
+            <form noValidate onSubmit={handleConfigSubmit}>
               <div className="input-grid">
                 {[
                   { 
@@ -136,7 +150,7 @@ const Tuerca = () => {
                         id={id}
                         name={id}
                         min="0"
-                        step="10"
+                        step="10"   // Sigue mostrando flechas que saltan de 10 en 10
                         value={configTimes[id]}
                         onChange={handleConfigChange}
                         placeholder={`Ej: ${id === 'dataInterval' ? '60' : '300'}`}
@@ -231,32 +245,28 @@ const Tuerca = () => {
           position: relative;
         }
         .input-wrapper input {
-
-        width: 80%;
-        padding: 8px 75px 8px 12px; /* Aumentamos el padding-right para dar más espacio */
-        border: 1px solid #ccc;
-        border-radius: 40px;
-        font-size: 1rem;
-        transition: border 0.3s ease;
-      }
-
+          width: 80%;
+          padding: 8px 75px 8px 12px;
+          border: 1px solid #ccc;
+          border-radius: 40px;
+          font-size: 1rem;
+          transition: border 0.3s ease;
+        }
         /* Forzamos que los spinners se muestren siempre y ajustamos su posición */
         .input-wrapper input::-webkit-inner-spin-button,
         .input-wrapper input::-webkit-outer-spin-button {
-        opacity: 1 !important;
-        margin-right: 10px; /* Puedes aumentar este valor para moverlos más a la derecha */
-      }
-
-    /* Ajustamos la posición del span que muestra la unidad para que no tape los spinners */
-     .input-unit {
-        position: absolute;
-        right: 10px; /* Mueve el texto de la unidad más hacia la izquierda o derecha según lo necesites */
-        top: 50%;
-        transform: translateY(-50%);
-        color: #555;
-        font-size: 0.9rem;
-        pointer-events: none;
-    }
+          opacity: 1 !important;
+          margin-right: 10px;
+        }
+        .input-unit {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #555;
+          font-size: 0.9rem;
+          pointer-events: none;
+        }
         .save-button {
           width: calc(100% - 32px);
           margin: 16px;

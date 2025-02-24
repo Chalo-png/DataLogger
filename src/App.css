@@ -41,3 +41,30 @@ body {
   padding-left: 5%;
   padding-right: 5%;
 }
+/* Estilos para el componente Pantalla */
+.pantalla {
+  position: fixed;
+  top: 20px;
+  right: 90px; /* Ubicado al lado de la tuerca en escritorio */
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+  font-size: 0.9rem;
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 768px) {
+  .pantalla {
+    position: fixed;
+    bottom: 20px; /* Lo ubica en la parte inferior */
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    width: 90%;
+    max-width: 350px;
+    font-size: 0.8rem;
+  }
+}

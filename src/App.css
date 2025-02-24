@@ -41,7 +41,7 @@ body {
   padding-left: 5%;
   padding-right: 5%;
 }
-/* Estilos para el componente Pantalla */
+/* Estilos para el componente Pantalla en escritorio (landscape) */
 .pantalla {
   position: fixed;
   top: 20px;
@@ -55,16 +55,43 @@ body {
   font-size: 0.9rem;
 }
 
-/* Ajuste para dispositivos móviles */
-@media (max-width: 768px) {
+/* Ajuste para dispositivos móviles en orientación horizontal */
+@media (max-width: 768px) and (orientation: landscape) {
   .pantalla {
     position: fixed;
-    bottom: 20px; /* Lo ubica en la parte inferior */
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    right: auto;
     width: 90%;
     max-width: 350px;
     font-size: 0.8rem;
+  }
+}
+
+/* Ajuste para dispositivos móviles en orientación vertical (portrait) */
+@media (max-width: 768px) and (orientation: portrait) {
+  .pantalla {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 350px;
+    font-size: 0.8rem;
+  }
+  /* Ocultar la cabecera de la tabla y reacomodar el contenido en columnas */
+  .pantalla table thead {
+    display: none;
+  }
+  .pantalla table tbody tr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pantalla table tbody tr td {
+    display: block;
+    padding: 5px 0;
+    width: 100%;
+    text-align: center;
   }
 }

@@ -25,18 +25,7 @@ const Pantalla = () => {
   }, []);
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: '20px',
-      right: '90px', // Ajusta este valor para que quede al lado de la tuerca
-      background: 'white',
-      padding: '10px',
-      border: '1px solid #ccc',
-      borderRadius: '8px',
-      zIndex: 1000,
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '0.9rem'
-    }}>
+    <div className="pantalla">
       <table>
         <thead>
           <tr>

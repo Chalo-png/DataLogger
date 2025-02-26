@@ -1,6 +1,3 @@
-// pantalla
-
-// src/components/Pantalla.js
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot } from "firebase/firestore";
@@ -28,39 +25,64 @@ const Pantalla = () => {
 
   return (
     <div style={{
-      position: 'fixed',
+      position: 'absolute',
       top: '20px',
-      right: '90px', // Ajusta este valor para que quede al lado de la tuerca
+      right: '90px',
       background: 'white',
-      padding: '10px',
-      border: '1px solid #ccc',
-      borderRadius: '8px',
+      padding: '10px 10px',
+      border: '1px solid #ddd',
+      borderRadius: '15px',
       zIndex: 1000,
       fontFamily: 'Arial, sans-serif',
-      fontSize: '0.9rem'
+      fontSize: '1.1rem',
+      boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+      minWidth: '100px',
     }}>
-      <table>
-        <thead>
-          <tr>
-            <th style={{ padding: '0 5px' }}>Tintervalo</th>
-            <th style={{ padding: '0 5px' }}>Tdeepsleep</th>
-            <th style={{ padding: '0 5px' }}>Twakeup</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={{ textAlign: 'center', padding: '0 5px' }}>
-              {config ? config.dataInterval : '...'}
-            </td>
-            <td style={{ textAlign: 'center', padding: '0 5px' }}>
-              {config ? config.sleepTime : '...'}
-            </td>
-            <td style={{ textAlign: 'center', padding: '0 5px' }}>
-              {config ? config.wakeTime : '...'}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr',
+        gap: '10px',
+        textAlign: 'center',
+      }}>
+        <div>
+          <div style={{
+            fontWeight: 'bold',
+            marginBottom: '2px',
+            fontSize: '1rem',
+            color: '#444',
+          }}>Tintervalo</div>
+          <div style={{
+            padding: '4px 0',
+            fontWeight: '500',
+          }}>{config ? config.dataInterval : '...'}</div>
+        </div>
+        
+        <div>
+          <div style={{
+            fontWeight: 'bold',
+            marginBottom: '2px',
+            fontSize: '1rem',
+            color: '#444',
+          }}>Tdeepsleep</div>
+          <div style={{
+            padding: '2px 0',
+            fontWeight: '500',
+          }}>{config ? config.sleepTime : '...'}</div>
+        </div>
+        
+        <div>
+          <div style={{
+            fontWeight: 'bold',
+            marginBottom: '2px',
+            fontSize: '1rem',
+            color: '#444',
+          }}>Twakeup</div>
+          <div style={{
+            padding: '2px 0',
+            fontWeight: '500',
+          }}>{config ? config.wakeTime : '...'}</div>
+        </div>
+      </div>
     </div>
   );
 };

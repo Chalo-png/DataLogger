@@ -10,6 +10,11 @@ const Tuerca = () => {
     sleepTime: '',
     wakeTime: ''
   });
+  const [actualConfig, setActualConfig] = useState({
+    dataInterval: '',
+    sleepTime: '',
+    wakeTime: ''
+  });
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -21,14 +26,27 @@ const Tuerca = () => {
         // Intentar cargar desde localStorage primero
         const savedConfig = localStorage.getItem("configTimes");
         if (savedConfig) {
-          setConfigTimes(JSON.parse(savedConfig));
+          const parsed = JSON.parse(savedConfig);
+          setActualConfig(parsed);
+          // Inicializamos configTimes con campos vacíos para mostrar solo placeholders
+          setConfigTimes({
+            dataInterval: '',
+            sleepTime: '',
+            wakeTime: ''
+          });
         } else {
           // Si no hay datos en localStorage, intentar cargar desde Firebase
           const docRef = doc(db, "datalogger", "config", "times", "config");
           const docSnap = await getDoc(docRef);
           
           if (docSnap.exists()) {
-            setConfigTimes(docSnap.data());
+            setActualConfig(docSnap.data());
+            // Inicializamos configTimes con campos vacíos para mostrar solo placeholders
+            setConfigTimes({
+              dataInterval: '',
+              sleepTime: '',
+              wakeTime: ''
+            });
           }
         }
       } catch (error) {
@@ -49,6 +67,7 @@ const Tuerca = () => {
         ...prev,
         [name]: ''
       }));
+      setError('');
       return;
     }
     
@@ -59,17 +78,24 @@ const Tuerca = () => {
     
     const numericValue = parseInt(value, 10);
     
-    if (!isNaN(numericValue) && numericValue > 0) {
+    if (numericValue > 0) {
       setConfigTimes(prev => ({
         ...prev,
         [name]: numericValue.toString()
       }));
       setError('');
+    } else if (numericValue === 0) {
+      setConfigTimes(prev => ({
+        ...prev,
+        [name]: '0'
+      }));
+      setError('Los valores deben ser mayores a 0');
     } else if (value === '') {
       setConfigTimes(prev => ({
         ...prev,
         [name]: ''
       }));
+      setError('');
     } else {
       setError('Los valores deben ser mayores a 0');
     }
@@ -78,12 +104,16 @@ const Tuerca = () => {
   // Función para incrementar o decrementar en 10
   const handleIncrementDecrement = (name, increment) => {
     setConfigTimes(prev => {
-      const currentValue = Number(prev[name]) || 0;
+      // Si el campo está vacío, usamos el valor actual guardado o 0 si no hay valor
+      const baseValue = prev[name] === '' 
+        ? (actualConfig[name] ? Number(actualConfig[name]) : 0) 
+        : Number(prev[name]);
+      
       let newValue;
       if (increment) {
-        newValue = currentValue + 10;
+        newValue = baseValue + 10;
       } else {
-        newValue = currentValue - 10;
+        newValue = baseValue - 10;
         if (newValue < 1) newValue = 1;
       }
       return {
@@ -105,16 +135,9 @@ const Tuerca = () => {
   const handleConfigSubmit = async (e) => {
     e.preventDefault();
     
-    if (!configTimes.dataInterval || !configTimes.sleepTime || !configTimes.wakeTime) {
-      setError("Todos los campos deben contener un número mayor a 0.");
-      return;
-    }
-    
-    const dataInterval = Number(configTimes.dataInterval);
-    const sleepTime = Number(configTimes.sleepTime);
-    const wakeTime = Number(configTimes.wakeTime);
-    
-    if (dataInterval <= 0 || sleepTime <= 0 || wakeTime <= 0) {
+    // Verificar si todos los campos contienen 0
+    const hasZeroValue = Object.values(configTimes).some(value => value === '0');
+    if (hasZeroValue) {
       setError("Todos los valores deben ser mayores a 0.");
       return;
     }
@@ -123,16 +146,35 @@ const Tuerca = () => {
     setError('');
 
     try {
+      // Combinar valores existentes con los nuevos (si hay alguno vacío)
       const updatedConfig = {
-        dataInterval: dataInterval,
-        sleepTime: sleepTime,
-        wakeTime: wakeTime
+        dataInterval: configTimes.dataInterval !== '' 
+          ? Number(configTimes.dataInterval) 
+          : actualConfig.dataInterval,
+        sleepTime: configTimes.sleepTime !== '' 
+          ? Number(configTimes.sleepTime) 
+          : actualConfig.sleepTime,
+        wakeTime: configTimes.wakeTime !== '' 
+          ? Number(configTimes.wakeTime) 
+          : actualConfig.wakeTime
       };
+      
       await setDoc(doc(db, "datalogger", "config", "times", "config"), updatedConfig);
       localStorage.setItem("configTimes", JSON.stringify(updatedConfig));
+      
+      // Actualizar el estado actual después de guardar
+      setActualConfig(updatedConfig);
+      
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       setShowConfig(false);
+      
+      // Limpiar los campos después de guardar
+      setConfigTimes({
+        dataInterval: '',
+        sleepTime: '',
+        wakeTime: ''
+      });
     } catch (error) {
       console.error("Error al guardar la configuración:", error);
       setError("Error al guardar la configuración. Intente nuevamente.");
@@ -143,7 +185,12 @@ const Tuerca = () => {
 
   // Resetear configuración al abrir el modal
   const handleOpenConfig = () => {
-    // Mantener los valores existentes si hay, pero mostrar el modal
+    // Iniciar con campos vacíos para mostrar solo placeholders
+    setConfigTimes({
+      dataInterval: '',
+      sleepTime: '',
+      wakeTime: ''
+    });
     setShowConfig(true);
     setError('');
   };
@@ -280,7 +327,7 @@ const Tuerca = () => {
               <button 
                 type="submit" 
                 className="save-button"
-                disabled={loading || error !== ''}
+                disabled={loading || (error !== '' && !Object.values(configTimes).every(val => val === ''))}
               >
                 {loading ? (
                   <div className="spinner"></div>

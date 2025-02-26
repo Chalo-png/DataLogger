@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { GearFill, XCircle, CheckCircle, ExclamationTriangle } from 'react-bootstrap-icons';
 
 const Tuerca = () => {
   const [showConfig, setShowConfig] = useState(false);
   const [configTimes, setConfigTimes] = useState({
-    dataInterval: '60',
-    sleepTime: '300',
-    wakeTime: '300'
+    dataInterval: '',
+    sleepTime: '',
+    wakeTime: ''
   });
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  // Cargar datos guardados al iniciar el componente
+  useEffect(() => {
+    const loadSavedConfig = async () => {
+      try {
+        // Intentar cargar desde localStorage primero
+        const savedConfig = localStorage.getItem("configTimes");
+        if (savedConfig) {
+          setConfigTimes(JSON.parse(savedConfig));
+        } else {
+          // Si no hay datos en localStorage, intentar cargar desde Firebase
+          const docRef = doc(db, "datalogger", "config", "times", "config");
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+            setConfigTimes(docSnap.data());
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar la configuración:", error);
+      }
+    };
+
+    loadSavedConfig();
+  }, []);
 
   // Maneja el cambio en los inputs y valida valores positivos
   const handleConfigChange = (e) => {
@@ -27,6 +52,11 @@ const Tuerca = () => {
       return;
     }
     
+    // Solo permite números
+    if (!/^\d+$/.test(value) && value !== '') {
+      return;
+    }
+    
     const numericValue = parseInt(value, 10);
     
     if (!isNaN(numericValue) && numericValue > 0) {
@@ -35,6 +65,11 @@ const Tuerca = () => {
         [name]: numericValue.toString()
       }));
       setError('');
+    } else if (value === '') {
+      setConfigTimes(prev => ({
+        ...prev,
+        [name]: ''
+      }));
     } else {
       setError('Los valores deben ser mayores a 0');
     }
@@ -106,6 +141,13 @@ const Tuerca = () => {
     }
   };
 
+  // Resetear configuración al abrir el modal
+  const handleOpenConfig = () => {
+    // Mantener los valores existentes si hay, pero mostrar el modal
+    setShowConfig(true);
+    setError('');
+  };
+
   return (
     <>
       {/* Botón de configuración */}
@@ -137,8 +179,7 @@ const Tuerca = () => {
           }}
           onClick={(e) => {
             e.stopPropagation();
-            setShowConfig(true);
-            setError('');
+            handleOpenConfig();
           }}
         >
           <GearFill size={28} color="white" />
@@ -179,21 +220,24 @@ const Tuerca = () => {
                     id: 'dataInterval',
                     label: 'Intervalo de Datos',
                     unit: 'segundos',
-                    icon: '⏱️'
+                    icon: '⏱️',
+                    placeholder: '60'
                   },
                   { 
                     id: 'sleepTime', 
                     label: 'Modo Deep Sleep', 
                     unit: 'segundos',
-                    icon: '💤'
+                    icon: '💤',
+                    placeholder: '300'
                   },
                   { 
                     id: 'wakeTime', 
                     label: 'Tiempo Wake Up', 
                     unit: 'segundos',
-                    icon: '⏰'
+                    icon: '⏰',
+                    placeholder: '300'
                   }
-                ].map(({id, label, unit, icon}) => (
+                ].map(({id, label, unit, icon, placeholder}) => (
                   <div className="input-group" key={id}>
                     <label htmlFor={id}>
                       <span className="input-icon">{icon}</span>
@@ -209,12 +253,14 @@ const Tuerca = () => {
                         -
                       </button>
                       <input
-                        type="text"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         id={id}
                         name={id}
                         value={configTimes[id]}
                         onChange={handleConfigChange}
-                        placeholder={`Ej: ${id === 'dataInterval' ? '60' : '300'}`}
+                        placeholder={placeholder}
                         className="number-input"
                       />
                       {/* Botón para aumentar */}
@@ -327,6 +373,10 @@ const Tuerca = () => {
           font-size: 1rem;
           transition: border 0.3s ease;
           text-align: center;
+        }
+        .input-wrapper input::placeholder {
+          color: #aaa;
+          opacity: 0.7;
         }
         /* Eliminar las flechas nativas de los inputs tipo number */
         .number-input {

@@ -41,3 +41,107 @@ body {
   padding-left: 5%;
   padding-right: 5%;
 }
+
+/* ✅ Pantalla de configuración fija */
+.pantalla {
+  position: fixed;
+  top: 20px;
+  right: 90px; /* Posicionada al lado de la tuerca */
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  z-index: 1049; /* Debajo de la tuerca pero sobre otros elementos */
+  font-size: 0.9rem;
+  transition: all 0.3s ease-in-out;
+}
+
+/* ✅ Cuando la pantalla está expandida, la movemos más a la izquierda */
+.pantalla.expanded {
+  right: 130px; /* Se aleja un poco más de la tuerca */
+}
+
+/* ✅ Botón de alternar la configuración */
+.toggle-btn {
+  width: 100%;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+/* ✅ Ocultar la tabla cuando está minimizada */
+.pantalla.minimized table {
+  display: none;
+}
+
+/* ✅ Mostrar la tabla en modo expandido */
+.pantalla.expanded table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pantalla.expanded th,
+.pantalla.expanded td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+/* ✅ Ajustes específicos para móviles */
+@media (max-width: 768px) {
+  .tuerca-button {
+    top: 10px;
+    right: 10px;
+  }
+
+  .pantalla {
+    top: 10px;
+    right: 70px; /* Ajusta para que se vea bien en móvil */
+    font-size: 0.8rem;
+  }
+
+  .pantalla.expanded {
+    right: 100px; /* Se aleja más de la tuerca en móviles */
+  }
+}
+/* ✅ Botón de configuración (Tuerca) */
+.tuerca-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #007bff;
+  border: none;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1050; /* La tuerca siempre debe estar sobre la pantalla */
+}
+
+/* ✅ Mensaje de error en la tuerca */
+.error-message {
+  color: red;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 8px;
+}
+.custom-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.custom-btn:hover {
+  background: #0056b3;
+}

@@ -1,60 +1,98 @@
 import React, { useState } from 'react';
 import { db } from '../firebase';
 import { doc, setDoc } from "firebase/firestore";
-import { GearFill, XCircle, CheckCircle } from 'react-bootstrap-icons';
+import { GearFill, XCircle, CheckCircle, ExclamationTriangle } from 'react-bootstrap-icons';
 
 const Tuerca = () => {
   const [showConfig, setShowConfig] = useState(false);
   const [configTimes, setConfigTimes] = useState({
-    dataInterval: '',
-    sleepTime: '',
-    wakeTime: ''
+    dataInterval: '60',
+    sleepTime: '300',
+    wakeTime: '300'
   });
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  // Maneja el cambio en los inputs y elimina ceros a la izquierda
+  // Maneja el cambio en los inputs y valida valores positivos
   const handleConfigChange = (e) => {
     const { name, value } = e.target;
-    if (Number(value) < 0) return; // Evita valores negativos
-
-    // Convertimos el valor a número entero para remover ceros a la izquierda
-    const numericValue = parseInt(value, 10);
-
-    // Si es un número válido, lo guardamos como string sin ceros a la izquierda
-    if (!isNaN(numericValue)) {
-      setConfigTimes(prev => ({
-        ...prev,
-        [name]: numericValue.toString()
-      }));
-    } else {
-      // Si el usuario borra todo y queda vacío, lo dejamos vacío
+    
+    // Permite que el usuario borre el valor para luego ingresar uno nuevo
+    if (value === '') {
       setConfigTimes(prev => ({
         ...prev,
         [name]: ''
       }));
+      return;
     }
+    
+    const numericValue = parseInt(value, 10);
+    
+    if (!isNaN(numericValue) && numericValue > 0) {
+      setConfigTimes(prev => ({
+        ...prev,
+        [name]: numericValue.toString()
+      }));
+      setError('');
+    } else {
+      setError('Los valores deben ser mayores a 0');
+    }
+  };
+
+  // Función para incrementar o decrementar en 10
+  const handleIncrementDecrement = (name, increment) => {
+    setConfigTimes(prev => {
+      const currentValue = Number(prev[name]) || 0;
+      let newValue;
+      if (increment) {
+        newValue = currentValue + 10;
+      } else {
+        newValue = currentValue - 10;
+        if (newValue < 1) newValue = 1;
+      }
+      return {
+        ...prev,
+        [name]: newValue.toString()
+      };
+    });
   };
 
   // Cierra el modal al hacer clic fuera de él
   const handleModalClick = (e) => {
     if (e.target === e.currentTarget) {
       setShowConfig(false);
+      setError('');
     }
   };
 
   // Guarda la configuración en Firestore y en localStorage
   const handleConfigSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!configTimes.dataInterval || !configTimes.sleepTime || !configTimes.wakeTime) {
+      setError("Todos los campos deben contener un número mayor a 0.");
+      return;
+    }
+    
+    const dataInterval = Number(configTimes.dataInterval);
+    const sleepTime = Number(configTimes.sleepTime);
+    const wakeTime = Number(configTimes.wakeTime);
+    
+    if (dataInterval <= 0 || sleepTime <= 0 || wakeTime <= 0) {
+      setError("Todos los valores deben ser mayores a 0.");
+      return;
+    }
+    
     setLoading(true);
+    setError('');
 
     try {
       const updatedConfig = {
-        dataInterval: Number(configTimes.dataInterval),
-        sleepTime: Number(configTimes.sleepTime),
-        wakeTime: Number(configTimes.wakeTime)
+        dataInterval: dataInterval,
+        sleepTime: sleepTime,
+        wakeTime: wakeTime
       };
-
       await setDoc(doc(db, "datalogger", "config", "times", "config"), updatedConfig);
       localStorage.setItem("configTimes", JSON.stringify(updatedConfig));
       setShowSuccess(true);
@@ -62,6 +100,7 @@ const Tuerca = () => {
       setShowConfig(false);
     } catch (error) {
       console.error("Error al guardar la configuración:", error);
+      setError("Error al guardar la configuración. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -70,35 +109,41 @@ const Tuerca = () => {
   return (
     <>
       {/* Botón de configuración */}
-      <button
+      <div
         style={{ 
-          position: "fixed",
+          position: "absolute",
           top: "20px",
           right: "20px",
           zIndex: 1000,
-          background: "#007bff",
-          border: "none",
-          cursor: "pointer",
-          padding: "12px",
-          borderRadius: "50%",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-          transition: "all 0.3s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "rotate(90deg) scale(1.1)";
-          e.currentTarget.style.background = "#0056b3";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "rotate(0deg) scale(1)";
-          e.currentTarget.style.background = "#007bff";
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowConfig(true);
         }}
       >
-        <GearFill size={28} color="white" />
-      </button>
+        <button
+          style={{ 
+            background: "#007bff",
+            border: "none",
+            cursor: "pointer",
+            padding: "12px",
+            borderRadius: "50%",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            transition: "all 0.3s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "rotate(90deg) scale(1.1)";
+            e.currentTarget.style.background = "#0056b3";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "rotate(0deg) scale(1)";
+            e.currentTarget.style.background = "#007bff";
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowConfig(true);
+            setError('');
+          }}
+        >
+          <GearFill size={28} color="white" />
+        </button>
+      </div>
 
       {/* Modal de configuración */}
       {showConfig && (
@@ -112,11 +157,21 @@ const Tuerca = () => {
               <XCircle 
                 size={24} 
                 className="close-icon" 
-                onClick={() => setShowConfig(false)}
+                onClick={() => {
+                  setShowConfig(false);
+                  setError('');
+                }}
               />
             </div>
 
-            {/* noValidate para deshabilitar validación nativa y permitir números no múltiplos de 10 */}
+            {/* Mensaje de error */}
+            {error && (
+              <div className="error-message">
+                <ExclamationTriangle size={16} />
+                {error}
+              </div>
+            )}
+
             <form noValidate onSubmit={handleConfigSubmit}>
               <div className="input-grid">
                 {[
@@ -145,16 +200,31 @@ const Tuerca = () => {
                       {label}
                     </label>
                     <div className="input-wrapper">
+                      {/* Botón para disminuir */}
+                      <button 
+                        type="button" 
+                        onClick={() => handleIncrementDecrement(id, false)}
+                        className="step-button"
+                      >
+                        -
+                      </button>
                       <input
-                        type="number"
+                        type="text"
                         id={id}
                         name={id}
-                        min="0"
-                        step="10"   // Sigue mostrando flechas que saltan de 10 en 10
                         value={configTimes[id]}
                         onChange={handleConfigChange}
                         placeholder={`Ej: ${id === 'dataInterval' ? '60' : '300'}`}
+                        className="number-input"
                       />
+                      {/* Botón para aumentar */}
+                      <button 
+                        type="button" 
+                        onClick={() => handleIncrementDecrement(id, true)}
+                        className="step-button"
+                      >
+                        +
+                      </button>
                       <span className="input-unit">{unit}</span>
                     </div>
                   </div>
@@ -164,7 +234,7 @@ const Tuerca = () => {
               <button 
                 type="submit" 
                 className="save-button"
-                disabled={loading}
+                disabled={loading || error !== ''}
               >
                 {loading ? (
                   <div className="spinner"></div>
@@ -225,7 +295,7 @@ const Tuerca = () => {
         }
         .close-icon {
           cursor: pointer;
-          transition: transform 0.3s ease;
+          transition: transform 0.3 ease;
         }
         .close-icon:hover {
           transform: scale(1.2);
@@ -241,26 +311,51 @@ const Tuerca = () => {
           margin-bottom: 4px;
           font-weight: bold;
         }
+        .input-icon {
+          margin-right: 5px;
+        }
         .input-wrapper {
           position: relative;
+          display: flex;
+          align-items: center;
         }
         .input-wrapper input {
-          width: 80%;
-          padding: 8px 75px 8px 12px;
+          width: 100%;
+          padding: 8px 40px;
           border: 1px solid #ccc;
           border-radius: 40px;
           font-size: 1rem;
           transition: border 0.3s ease;
+          text-align: center;
         }
-        /* Forzamos que los spinners se muestren siempre y ajustamos su posición */
-        .input-wrapper input::-webkit-inner-spin-button,
-        .input-wrapper input::-webkit-outer-spin-button {
-          opacity: 1 !important;
-          margin-right: 10px;
+        /* Eliminar las flechas nativas de los inputs tipo number */
+        .number-input {
+          -moz-appearance: textfield;
+        }
+        .number-input::-webkit-outer-spin-button,
+        .number-input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .step-button {
+          background: #f0f0f0;
+          border: none;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 1.2rem;
+          margin: 0 5px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .step-button:hover {
+          background: #e0e0e0;
         }
         .input-unit {
           position: absolute;
-          right: 10px;
+          right: 60px;
           top: 50%;
           transform: translateY(-50%);
           color: #555;
@@ -286,7 +381,7 @@ const Tuerca = () => {
           background: #0056b3;
         }
         .save-button:disabled {
-          background: #007bff;
+          background: #6c757d;
           opacity: 0.7;
           cursor: not-allowed;
         }
@@ -312,6 +407,17 @@ const Tuerca = () => {
           box-shadow: 0 2px 8px rgba(0,0,0,0.2);
           z-index: 1001;
           animation: fadeInOut 2s ease-in-out;
+        }
+        .error-message {
+          background-color: #f8d7da;
+          color: #721c24;
+          padding: 10px 16px;
+          margin: 10px 16px 0 16px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.9rem;
         }
         @keyframes spin {
           0% { transform: rotate(0deg); }

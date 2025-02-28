@@ -1,4 +1,3 @@
-// src/components/reset.js
 import React, { useState, useEffect } from "react";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 
@@ -10,17 +9,17 @@ const ResetButton = () => {
   useEffect(() => {
     let timer;
     if (active) {
-      // Al activar, se envía resetRequested: 1
+      // Send resetRequested: 1 when activated
       setDoc(
         doc(db, "datalogger", "config", "times", "config"),
         { resetRequested: 1 },
         { merge: true }
       );
 
-      // Mantiene el botón activo por 5 segundos
+      // Keep button active for 5 seconds
       timer = setTimeout(() => {
         setActive(false);
-        // Al finalizar, se envía resetRequested: 0
+        // Send resetRequested: 0 when finished
         setDoc(
           doc(db, "datalogger", "config", "times", "config"),
           { resetRequested: 0 },
@@ -32,8 +31,24 @@ const ResetButton = () => {
   }, [active]);
 
   return (
-    <button className="reset-button" onClick={() => setActive(true)} disabled={active}>
-      {active ? "Reiniciando..." : "Reiniciar ESP32"}
+    <button 
+      className="reset-button" 
+      onClick={() => setActive(true)} 
+      disabled={active}
+      style={{
+        position: 'absolute',
+        top: '95px', // Positioned much lower than before
+        right: '10px',
+        padding: '6px 10px',
+        fontSize: '12px',
+        backgroundColor: active ? '#f44336' : '#2196f3',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: active ? 'not-allowed' : 'pointer'
+      }}
+    >
+      {active ? "Reiniciando..." : "Reinicar"}
     </button>
   );
 };

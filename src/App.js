@@ -5,6 +5,7 @@ import GraficoFirestore from './components/GraficoFirestore';
 import SensorMap from './components/SensorMap';
 import Tuerca from './components/tuerca';
 import Pantalla from './components/Pantalla';
+import ResetButton from './components/reset';  // <-- Import del botón
 import './App.css';
 
 function App() {
@@ -27,9 +28,13 @@ function App() {
         <h1 className="text-light m-0">MF</h1>
       </Navbar>
 
-      {/* Componente Tuerca */}
-      <Tuerca />
-      {/* Colocamos Pantalla justo al lado de la tuerca */}
+      {/* Contenedor para la tuerca y el botón de reinicio */}
+      <div className="tuerca-container">
+        <Tuerca />
+        <ResetButton />
+      </div>
+
+      {/* Colocamos Pantalla después */}
       <Pantalla />
 
       <div className="d-flex flex-column align-items-center">

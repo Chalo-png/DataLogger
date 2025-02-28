@@ -2,50 +2,51 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { GearFill, XCircle, CheckCircle, ExclamationTriangle } from 'react-bootstrap-icons';
+import SwitchTiempos from './SwitchTiempos';
 
 const Tuerca = () => {
-  const [showConfig, setShowConfig] = useState(false);
   const [configTimes, setConfigTimes] = useState({
     dataInterval: '',
     sleepTime: '',
-    wakeTime: ''
+    wakeTime: '',
+    mainTimesEnabled: ''
   });
+
   const [actualConfig, setActualConfig] = useState({
     dataInterval: '',
     sleepTime: '',
-    wakeTime: ''
+    wakeTime: '',
+    mainTimesEnabled: 1
   });
+
   const [loading, setLoading] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  // Cargar datos guardados al iniciar el componente
   useEffect(() => {
     const loadSavedConfig = async () => {
       try {
-        // Intentar cargar desde localStorage primero
         const savedConfig = localStorage.getItem("configTimes");
         if (savedConfig) {
           const parsed = JSON.parse(savedConfig);
           setActualConfig(parsed);
-          // Inicializamos configTimes con campos vacíos para mostrar solo placeholders
           setConfigTimes({
             dataInterval: '',
             sleepTime: '',
-            wakeTime: ''
+            wakeTime: '',
+            mainTimesEnabled: ''
           });
         } else {
-          // Si no hay datos en localStorage, intentar cargar desde Firebase
           const docRef = doc(db, "datalogger", "config", "times", "config");
           const docSnap = await getDoc(docRef);
-          
           if (docSnap.exists()) {
             setActualConfig(docSnap.data());
-            // Inicializamos configTimes con campos vacíos para mostrar solo placeholders
             setConfigTimes({
               dataInterval: '',
               sleepTime: '',
-              wakeTime: ''
+              wakeTime: '',
+              mainTimesEnabled: ''
             });
           }
         }
@@ -57,157 +58,120 @@ const Tuerca = () => {
     loadSavedConfig();
   }, []);
 
-  // Maneja el cambio en los inputs y valida valores positivos
   const handleConfigChange = (e) => {
     const { name, value } = e.target;
     
-    // Permite que el usuario borre el valor para luego ingresar uno nuevo
     if (value === '') {
-      setConfigTimes(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setConfigTimes(prev => ({ ...prev, [name]: '' }));
       setError('');
       return;
     }
     
-    // Solo permite números
-    if (!/^\d+$/.test(value) && value !== '') {
+    if (!/^\d+$/.test(value)) {
       return;
     }
     
     const numericValue = parseInt(value, 10);
     
-    if (numericValue > 0) {
-      setConfigTimes(prev => ({
-        ...prev,
-        [name]: numericValue.toString()
-      }));
-      setError('');
-    } else if (numericValue === 0) {
-      setConfigTimes(prev => ({
-        ...prev,
-        [name]: '0'
-      }));
-      setError('Los valores deben ser mayores a 0');
-    } else if (value === '') {
-      setConfigTimes(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-      setError('');
+    if (numericValue < 20) {
+      setError("Solo se permiten valores iguales o mayores que 20.");
     } else {
-      setError('Los valores deben ser mayores a 0');
+      setError('');
     }
+    
+    setConfigTimes(prev => ({ ...prev, [name]: value }));
   };
 
-  // Función para incrementar o decrementar en 10
   const handleIncrementDecrement = (name, increment) => {
     setConfigTimes(prev => {
-      // Si el campo está vacío, usamos el valor actual guardado o 0 si no hay valor
       const baseValue = prev[name] === '' 
         ? (actualConfig[name] ? Number(actualConfig[name]) : 0) 
         : Number(prev[name]);
-      
-      let newValue;
-      if (increment) {
-        newValue = baseValue + 10;
-      } else {
-        newValue = baseValue - 10;
-        if (newValue < 1) newValue = 1;
-      }
-      return {
-        ...prev,
-        [name]: newValue.toString()
-      };
+      let newValue = increment ? baseValue + 10 : baseValue - 10;
+      if (newValue < 1) newValue = 1;
+      return { ...prev, [name]: newValue.toString() };
     });
   };
-
-  // Cierra el modal al hacer clic fuera de él
-  const handleModalClick = (e) => {
-    if (e.target === e.currentTarget) {
-      setShowConfig(false);
-      setError('');
-    }
-  };
-
-  // Guarda la configuración en Firestore y en localStorage
-  const handleConfigSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Verificar si todos los campos contienen 0
-    const hasZeroValue = Object.values(configTimes).some(value => value === '0');
-    if (hasZeroValue) {
-      setError("Todos los valores deben ser mayores a 0.");
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
-
-    try {
-      // Combinar valores existentes con los nuevos (si hay alguno vacío)
-      const updatedConfig = {
-        dataInterval: configTimes.dataInterval !== '' 
-          ? Number(configTimes.dataInterval) 
-          : actualConfig.dataInterval,
-        sleepTime: configTimes.sleepTime !== '' 
-          ? Number(configTimes.sleepTime) 
-          : actualConfig.sleepTime,
-        wakeTime: configTimes.wakeTime !== '' 
-          ? Number(configTimes.wakeTime) 
-          : actualConfig.wakeTime
-      };
-      
-      await setDoc(doc(db, "datalogger", "config", "times", "config"), updatedConfig);
-      localStorage.setItem("configTimes", JSON.stringify(updatedConfig));
-      
-      // Actualizar el estado actual después de guardar
-      setActualConfig(updatedConfig);
-      
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
-      setShowConfig(false);
-      
-      // Limpiar los campos después de guardar
-      setConfigTimes({
-        dataInterval: '',
-        sleepTime: '',
-        wakeTime: ''
-      });
-    } catch (error) {
-      console.error("Error al guardar la configuración:", error);
-      setError("Error al guardar la configuración. Intente nuevamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Resetear configuración al abrir el modal
+  
   const handleOpenConfig = () => {
-    // Iniciar con campos vacíos para mostrar solo placeholders
     setConfigTimes({
       dataInterval: '',
       sleepTime: '',
-      wakeTime: ''
+      wakeTime: '',
+      mainTimesEnabled: ''
     });
     setShowConfig(true);
     setError('');
   };
 
+  const handleConfigSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (configTimes.dataInterval !== "" && Number(configTimes.dataInterval) < 20) {
+      setError("El intervalo de datos debe ser al menos 20 segundos.");
+      return;
+    }
+  
+    if (configTimes.mainTimesEnabled === "1") {
+      if (
+        (configTimes.sleepTime !== "" && Number(configTimes.sleepTime) < 20) ||
+        (configTimes.wakeTime !== "" && Number(configTimes.wakeTime) < 20)
+      ) {
+        setError("Los tiempos de Deep Sleep y Wake Up deben ser al menos 20 segundos.");
+        return;
+      }
+    }
+  
+    setLoading(true);
+    setError('');
+  
+    try {
+      const updatedConfig = {
+        dataInterval: configTimes.dataInterval !== '' 
+          ? Number(configTimes.dataInterval) 
+          : actualConfig.dataInterval,
+        sleepTime: configTimes.mainTimesEnabled === "1"
+          ? (configTimes.sleepTime !== '' ? Number(configTimes.sleepTime) : actualConfig.sleepTime)
+          : actualConfig.sleepTime,
+        wakeTime: configTimes.mainTimesEnabled === "1"
+          ? (configTimes.wakeTime !== '' ? Number(configTimes.wakeTime) : actualConfig.wakeTime)
+          : actualConfig.wakeTime,
+        mainTimesEnabled: configTimes.mainTimesEnabled !== '' 
+          ? Number(configTimes.mainTimesEnabled) 
+          : actualConfig.mainTimesEnabled,
+        resetRequested: 0
+      };
+
+      await setDoc(doc(db, "datalogger", "config", "times", "config"), updatedConfig);
+
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
+      setShowConfig(false);
+
+      localStorage.setItem("configTimes", JSON.stringify(updatedConfig));
+      setActualConfig(updatedConfig);
+
+      setConfigTimes({
+        dataInterval: '',
+        sleepTime: '',
+        wakeTime: '',
+        mainTimesEnabled: ''
+      });
+
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      setError("Error al guardar configuración. Intenta nuevamente.");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      {/* Botón de configuración */}
-      <div
-        style={{ 
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-          zIndex: 1000,
-        }}
-      >
+      <div style={{ position: "absolute", top: "20px", right: "20px", zIndex: 1000 }}>
         <button
-          style={{ 
+          style={{
             background: "#007bff",
             border: "none",
             cursor: "pointer",
@@ -233,9 +197,8 @@ const Tuerca = () => {
         </button>
       </div>
 
-      {/* Modal de configuración */}
       {showConfig && (
-        <div className="modal-overlay" onClick={handleModalClick}>
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setShowConfig(false); setError(''); } }}>
           <div className="config-modal">
             <div className="modal-header">
               <h3>
@@ -245,14 +208,10 @@ const Tuerca = () => {
               <XCircle 
                 size={24} 
                 className="close-icon" 
-                onClick={() => {
-                  setShowConfig(false);
-                  setError('');
-                }}
+                onClick={() => { setShowConfig(false); setError(''); }}
               />
             </div>
 
-            {/* Mensaje de error */}
             {error && (
               <div className="error-message">
                 <ExclamationTriangle size={16} />
@@ -262,66 +221,94 @@ const Tuerca = () => {
 
             <form noValidate onSubmit={handleConfigSubmit}>
               <div className="input-grid">
-                {[
-                  { 
-                    id: 'dataInterval',
-                    label: 'Intervalo de Datos',
-                    unit: 'segundos',
-                    icon: '⏱️',
-                    placeholder: '60'
-                  },
-                  { 
-                    id: 'sleepTime', 
-                    label: 'Modo Deep Sleep', 
-                    unit: 'segundos',
-                    icon: '💤',
-                    placeholder: '300'
-                  },
-                  { 
-                    id: 'wakeTime', 
-                    label: 'Tiempo Wake Up', 
-                    unit: 'segundos',
-                    icon: '⏰',
-                    placeholder: '300'
-                  }
-                ].map(({id, label, unit, icon, placeholder}) => (
-                  <div className="input-group" key={id}>
-                    <label htmlFor={id}>
-                      <span className="input-icon">{icon}</span>
-                      {label}
-                    </label>
-                    <div className="input-wrapper">
-                      {/* Botón para disminuir */}
-                      <button 
-                        type="button" 
-                        onClick={() => handleIncrementDecrement(id, false)}
-                        className="step-button"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        id={id}
-                        name={id}
-                        value={configTimes[id]}
-                        onChange={handleConfigChange}
-                        placeholder={placeholder}
-                        className="number-input"
-                      />
-                      {/* Botón para aumentar */}
-                      <button 
-                        type="button" 
-                        onClick={() => handleIncrementDecrement(id, true)}
-                        className="step-button"
-                      >
-                        +
-                      </button>
-                      <span className="input-unit">{unit}</span>
-                    </div>
+                <div className="input-group">
+                  <label htmlFor="dataInterval">
+                    <span className="input-icon">⏱️</span>
+                    Intervalo de Datos
+                  </label>
+                  <div className="input-wrapper">
+                    <button type="button" onClick={() => handleIncrementDecrement('dataInterval', false)} className="step-button">-</button>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      id="dataInterval"
+                      name="dataInterval"
+                      value={configTimes.dataInterval}
+                      onChange={handleConfigChange}
+                      placeholder={actualConfig.dataInterval?.toString() || "60"}
+                      className="number-input"
+                    />
+                    <button type="button" onClick={() => handleIncrementDecrement('dataInterval', true)} className="step-button">+</button>
+                    <span className="input-unit">segundos</span>
                   </div>
-                ))}
+                </div>
+
+                <div className="controls-row">
+                  <div className="switch-container">
+                    <label htmlFor="mainTimesEnabled">
+                      <span className="input-icon">🔌</span>
+                      Activar Deep Sleep y Wake Up
+                    </label>
+                    <SwitchTiempos
+                      value={
+                        configTimes.mainTimesEnabled !== ''
+                          ? configTimes.mainTimesEnabled
+                          : (actualConfig.mainTimesEnabled === 1 ? "1" : "0")
+                      }
+                      onChange={(newValue) => setConfigTimes(prev => ({ ...prev, mainTimesEnabled: newValue }))}
+                    />
+                  </div>
+                </div>
+
+                { (configTimes.mainTimesEnabled === "1" || (configTimes.mainTimesEnabled === "" && actualConfig.mainTimesEnabled === 1)) && (
+                  <>
+                    <div className="input-group">
+                      <label htmlFor="sleepTime">
+                        <span className="input-icon">💤</span>
+                        Modo Deep Sleep
+                      </label>
+                      <div className="input-wrapper">
+                        <button type="button" onClick={() => handleIncrementDecrement('sleepTime', false)} className="step-button">-</button>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          id="sleepTime"
+                          name="sleepTime"
+                          value={configTimes.sleepTime}
+                          onChange={handleConfigChange}
+                          placeholder={actualConfig.sleepTime?.toString() || "300"}
+                          className="number-input"
+                        />
+                        <button type="button" onClick={() => handleIncrementDecrement('sleepTime', true)} className="step-button">+</button>
+                        <span className="input-unit">segundos</span>
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="wakeTime">
+                        <span className="input-icon">⏰</span>
+                        Tiempo Wake Up
+                      </label>
+                      <div className="input-wrapper">
+                        <button type="button" onClick={() => handleIncrementDecrement('wakeTime', false)} className="step-button">-</button>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          id="wakeTime"
+                          name="wakeTime"
+                          value={configTimes.wakeTime}
+                          onChange={handleConfigChange}
+                          placeholder={actualConfig.wakeTime?.toString() || "300"}
+                          className="number-input"
+                        />
+                        <button type="button" onClick={() => handleIncrementDecrement('wakeTime', true)} className="step-button">+</button>
+                        <span className="input-unit">segundos</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <button 
@@ -343,7 +330,6 @@ const Tuerca = () => {
         </div>
       )}
 
-      {/* Toast de éxito */}
       {showSuccess && (
         <div className="success-toast">
           <CheckCircle size={20} />
@@ -351,7 +337,6 @@ const Tuerca = () => {
         </div>
       )}
 
-      {/* Estilos */}
       <style jsx>{`
         .modal-overlay {
           position: fixed;
@@ -425,7 +410,6 @@ const Tuerca = () => {
           color: #aaa;
           opacity: 0.7;
         }
-        /* Eliminar las flechas nativas de los inputs tipo number */
         .number-input {
           -moz-appearance: textfield;
         }
@@ -458,6 +442,17 @@ const Tuerca = () => {
           color: #555;
           font-size: 0.9rem;
           pointer-events: none;
+        }
+        .controls-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          width: 100%;
+        }
+        .switch-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
         }
         .save-button {
           width: calc(100% - 32px);
@@ -533,4 +528,4 @@ const Tuerca = () => {
   );
 };
 
-export default Tuerca;
+export default Tuerca;  
